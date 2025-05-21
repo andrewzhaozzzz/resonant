@@ -8,7 +8,7 @@ The code files are run in this order:
 3. checked_cleaned_df.py
 4. training_model.py (I ran three versions of training_model - each using a different training method. You can have a look at the others (training_model_pos_pairs.py and training_model_simcse.py if you want, but I decided that the method used in training_model.py worked best, so this is what we will continue to use here for the package).
 5. generating_embeddings.py (again, there are some redundant scripts here, including generating_embeddings_debug.py, generating_embeddings_pospairs.py, generating_cosine_similarity_scores_for_manual_validation and generating_embeddings_simcse.py). Although, on second thought, it might be a good idea to incorporate some of the output produced from generating_cosine_similarity_scores_for_manual_validation.py into the package, so users can check that their results are valid. 
-6. validate_embeddings.py
+6. validate_embeddings.py - this step involves some manual "threshold setting".
 7. splitting_df_embs_for_ntr.py (this is probably unnecessary to include, but useful for reference?)
 8. novelty_transience_resonance_at_different_similarity_thresholds.py
 9. merge_ntr_and_create_daily_csvs.py
