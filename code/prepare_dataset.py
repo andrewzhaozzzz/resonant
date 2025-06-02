@@ -21,11 +21,11 @@ from datasets import Dataset, DatasetDict
 def prepare_dataset(pickle_path, paragraph_col, save_name, spot_check = False, sample_num = 5, random_state = 0, num_paras = None, messages = False):
     # Confirm you’re loading the right file
     df = pd.read_pickle(pickle_path)
-    if messages = True:
+    if messages == True:
         print(f"Loading DataFrame from: {pickle_path}")
 
     # Spot-check that URLs/RTs are gone
-    if spot_check = True:
+    if spot_check == True:
         samples = df[paragraph_col].dropna().sample(sample_num, random_state).tolist()
         for i, text in enumerate(samples, 1):
         assert 'http' not in text,   "Found a URL in cleaned data!"
@@ -47,7 +47,7 @@ def prepare_dataset(pickle_path, paragraph_col, save_name, spot_check = False, s
     dataset = Dataset.from_dict({"labels": list(range(len(paragraphs))), "text": paragraphs})
     dataset = DatasetDict({"train": dataset, "test": dataset})
 
-    if messages = True:
+    if messages == True:
         print("Dataset ready.")
 
     return dataset
