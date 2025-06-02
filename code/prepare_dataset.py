@@ -18,15 +18,16 @@ import torch
 import torch.nn as nn
 from datasets import Dataset, DatasetDict
 
-def finetune_model(pickle_path, col_name, save_name, num_paras=None):
-    # 1. Confirm you’re loading the right file
-    print(f"Loading DataFrame from: {pickle_path}")
-
+def prepare_dataset(pickle_path, col_name, save_name, spot_check = False, sample_num = 5, random_state = 0, num_paras = None, messages = False):
+    # Confirm you’re loading the right file
     df = pd.read_pickle(pickle_path)
+    if messages = True:
+        print(f"Loading DataFrame from: {pickle_path}")
 
-    # 2. Spot-check that URLs/RTs are gone
-    samples = df[col_name].dropna().sample(5, random_state=0).tolist()
-    for i, text in enumerate(samples, 1):
+    # Spot-check that URLs/RTs are gone
+    if spot_check = True:
+        samples = df[col_name].dropna().sample(sample_num, random_state).tolist()
+        for i, text in enumerate(samples, 1):
         assert 'http' not in text,   "Found a URL in cleaned data!"
         assert not text.lower().startswith('rt @'), "Found an RT in cleaned data!"
         print(f"Sample {i}: {text}")
