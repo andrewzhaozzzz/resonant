@@ -18,7 +18,7 @@ import torch
 import torch.nn as nn
 from datasets import Dataset, DatasetDict
 
-def prepare_dataset(pickle_path, paragraph_col, save_name, spot_check = False, sample_num = 5, random_state = 0, num_paras = None, messages = False):
+def prepare_dataset(pickle_path, paragraph_col, spot_check = False, sample_num = 5, random_state = 0, num_paras = None, messages = True):
     # Confirm you’re loading the right file
     df = pd.read_pickle(pickle_path)
     if messages == True:
