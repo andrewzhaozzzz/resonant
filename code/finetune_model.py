@@ -17,14 +17,16 @@ import numpy as np
 import torch
 import torch.nn as nn
 from datasets import Dataset, DatasetDict
-import prepare_dataset
+import tokenize_function
 
-def finetune_model(pickle_path, paragraph_col, output_name, spot_check = False, sample_num = 5, random_state = 0, 
-                   num_paras = None, messages = False, model = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2',
+def finetune_model(prepared_dataset, paragraph_col, output_name, prepared_dataset_path = False, messages = True, model = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2',
                    tokenizer = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2', num_labels = 1,
                    mlm_prob = 0.15):
-    # Prepare the dataset for finetuning
-    dataset = prepare_dataset(pickle_path, paragraph_col, save_name, spot_check, sample_num, random_state, num_paras, messages)
+    # Load the dataset prepared for finetuning
+    if prepared_dataset_path == True:
+        dataset = pd.read_pickle(prepared_dataset)
+    else:
+        dataset = prepared_dataset
 
     # Initialize both the model and the tokenizer
     model = AutoModelForMaskedLM.from_pretrained(model, num_labels = num_labels)
@@ -39,7 +41,7 @@ def finetune_model(pickle_path, paragraph_col, output_name, spot_check = False, 
 
     def tokenize_function(examples):
         return tokenizer(examples["text"], padding=True, truncation=True, return_tensors='pt')
-    tokenized_datasets = dataset.map(tokenize_function, batched=True)
+    tokenized_datasets = dataset.map(tokenize_function.tokenize_function, batched = True)
     tokenized_datasets = tokenized_datasets.remove_columns(["text"])
     tokenized_datasets.set_format("torch")
 
