@@ -19,5 +19,5 @@ import torch.nn as nn
 from datasets import Dataset, DatasetDict
 import tokenize_function
 
-def tokenize_function(examples, paragraph_col):
-    return tokenizer(examples[paragraph_col], padding=True, truncation=True, return_tensors='pt')
+def tokenize_function(examples):
+    return tokenizer(examples["text"], padding=True, truncation=True, return_tensors='pt')
