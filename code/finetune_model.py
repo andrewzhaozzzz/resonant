@@ -42,7 +42,7 @@ def finetune_model(prepared_dataset, paragraph_col, output_name, output_dir, pre
         print("Model and tokenizer ready.")
     
     tokenized_datasets = dataset.map(tokenize_function.tokenize_function, batched = True)
-    tokenized_datasets = tokenized_datasets.remove_columns([paragraph_col])
+    tokenized_datasets = tokenized_datasets.remove_columns(["text"])
     tokenized_datasets.set_format("torch")
 
     if messages == True:
