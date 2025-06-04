@@ -21,7 +21,7 @@ def compute_embeddings(
     pooling_method = "mean_pooling",
     batch_size = 32,
     max_length = 128,
-    messages = False
+    messages = True
 ):
     # Load dataset
     if data_pickle_path = True:
@@ -48,7 +48,8 @@ def compute_embeddings(
     model.to(device)
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
-        print(f"Using {torch.cuda.device_count()} GPUs")
+        if messages == True:
+            print(f"Using {torch.cuda.device_count()} GPUs")
     model.eval()
 
     # Resume if already has progress
