@@ -6,83 +6,59 @@ import pandas as pd
 import json
 
 def main():
-    p = argparse.ArgumentParser(
-        description="Split a big DF + .npy embeddings into N padded shards"
-    )
-    p.add_argument("--df",           required=True,
-                   help="Path to cleaned df pickle (must have a 'date' column)")
-    p.add_argument("--embeddings",   required=True,
-                   help="Path to full merged .npy embeddings")
-    p.add_argument("--num-shards",   type=int, default=8,
-                   help="How many pieces to split into")
-    p.add_argument("--window-days",  type=int, default=14,
-                   help="Days of padding on each end of every shard")
-    p.add_argument("--out-dir",      required=True,
-                   help="Directory where shard files will be written")
-    p.add_argument("--prefix",       default="who_leads_model",
-                   help="Filename prefix for each shard")
+    p = argparse.ArgumentParser(description="Split a single merged DF with embeddings into N padded shards")
+    p.add_argument("--df", required=True, help="Path to merged DF with 'embedding' column and 'date'")
+    p.add_argument("--num-shards", type=int, default=8, help="How many shards to create")
+    p.add_argument("--window-days", type=int, default=14, help="Days of padding on each side of each shard")
+    p.add_argument("--out-dir", required=True, help="Directory to write shard files")
+    p.add_argument("--prefix", default="who_leads_model", help="Output filename prefix for each shard")
     args = p.parse_args()
 
     os.makedirs(args.out_dir, exist_ok=True)
 
-    # --- load and sort by date
-    print("Loading DF…")
+    print("Loading merged DataFrame...")
     df = pd.read_pickle(args.df)
-    df['date'] = pd.to_datetime(df['date'])
-    order = np.argsort(df['date'].values)
-    df = df.iloc[order].reset_index(drop=True)
+    if 'date' not in df.columns or 'embedding' not in df.columns:
+        raise ValueError("Input DataFrame must contain 'date' and 'embedding' columns")
 
-    print("Loading embeddings (as memmap)…")
-    emb = np.load(args.embeddings, mmap_mode="r")
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    if df['date'].isnull().any():
+        raise ValueError("Null or unparseable dates found in 'date' column")
+
+    df = df.sort_values("date").reset_index(drop=True)
+    dates = df['date'].values.astype("datetime64[D]")
     N = len(df)
-    if emb.shape[0] != N:
-        raise ValueError(f"DF rows ({N}) != emb rows ({emb.shape[0]})")
 
-    dates = df['date'].values.astype('datetime64[D]')
-    size  = N // args.num_shards
+    print(f"Total documents: {N}")
+    shard_indices = np.array_split(np.arange(N), args.num_shards)
 
-    for k in range(args.num_shards):
-        # global slice [S:E)
-        S = k * size
-        E = N if (k == args.num_shards - 1) else (k + 1) * size
+    for k, shard_idx in enumerate(shard_indices):
+        S = shard_idx[0]
+        E = shard_idx[-1] + 1
 
-        # compute padded window
         first_date = dates[S]
-        last_date  = dates[E-1]
-        min_date   = first_date - np.timedelta64(args.window_days, 'D')
-        max_date   = last_date  + np.timedelta64(args.window_days, 'D')
+        last_date  = dates[E - 1]
+        min_date = first_date - np.timedelta64(args.window_days, 'D')
+        max_date = last_date + np.timedelta64(args.window_days, 'D')
 
-        # binary‐search into sorted array
         min_idx = np.searchsorted(dates, min_date, side='left')
         max_idx = np.searchsorted(dates, max_date, side='right') - 1
+        df_k = df.iloc[min_idx:max_idx + 1].reset_index(drop=True)
 
-        # slice out just the padded region
-        df_k  = df.iloc[min_idx:max_idx+1].reset_index(drop=True)
-        emb_k = emb[min_idx:max_idx+1]
+        start_offset = S - min_idx
+        end_offset   = E - min_idx
 
-        # compute local offsets
-        start_off = S - min_idx
-        end_off   = E - min_idx
-
-        # build filenames
-        base     = os.path.join(args.out_dir, f"{args.prefix}_shard{k}")
-        df_path  = base + "_df.pkl"
-        emb_path = base + "_emb.npy"
+        base = os.path.join(args.out_dir, f"{args.prefix}_shard{k}")
+        df_path = base + ".pkl"
         cfg_path = base + "_config.json"
 
-        # write them
-        print(f"Writing shard {k}: global[{S}:{E}) → padded[{min_idx}:{max_idx+1})")
+        print(f"[Shard {k}] Global range: [{S}:{E}) | Padded range: [{min_idx}:{max_idx+1}] | Offsets: [{start_offset}:{end_offset}]")
         df_k.to_pickle(df_path)
-        np.save(emb_path, emb_k)
-        # cast to int so JSON can handle it
-        json.dump({
-            "start_offset": int(start_off),
-            "end_offset":   int(end_off)
-        }, open(cfg_path, "w"), indent=2)
+        with open(cfg_path, "w") as f:
+            json.dump({"start_offset": int(start_offset), "end_offset": int(end_offset)}, f, indent=2)
 
-        print("  ", df_path)
-        print("  ", emb_path)
-        print("  ", cfg_path)
+        print(f"  → Saved {df_path}")
+        print(f"  → Saved {cfg_path}")
 
 if __name__ == "__main__":
     main()
