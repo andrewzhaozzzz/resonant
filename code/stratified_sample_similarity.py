@@ -6,18 +6,10 @@ import numpy as np
 import load_latest_valid_checkpoint
 
 def stratified_sample_similarity(dataset, save_name, model_directory, dataset_path == True,
-                                 block_size = 1000, samples_per_bin = 10,
-                                 bins = [0.0, 0.5, 0.7, 0.8, 0.9, 1.01],
+                                 similarity_thresholds = [0.3, 0.5, 0.7, 0.8, 0.9],
                                  messages = True):
+    
     embedding_output_dir = os.path.join(model_directory, "embedding_output")
-
-    '''
-    # smaller blocks to avoid OOM
-    block_size = 1000
-    samples_per_bin = 10
-    bins = [0.0, 0.5, 0.7, 0.8, 0.9, 1.01]
-    '''
-
     # load embeddings (always on CPU)
     embeddings, latest_doc_count, _ = load_latest_valid_checkpoint.load_latest_valid_checkpoint(
         embedding_output_dir, save_name
