@@ -7,17 +7,17 @@ import torch
 from tqdm import tqdm
 
 def compute_novelty(
-    df,
+    df, 
     embs_t,
     dates,
-    user_codes,
-    window_days,
+    user_codes, # ?
     taus,                # will store raw tauᵢ (np.nan if no prior posts)
     start_idx,
     end_idx,
-    save_every,
     prog_file,
-    partial_file
+    partial_file,
+    window_days = 14,
+    save_every = 10
 ):
     """
     For each post i in [start_idx, end_idx), find raw tauᵢ = max cosine(emb_i, emb_j) over all
@@ -61,3 +61,4 @@ def compute_novelty(
             part = df.iloc[:i + 1].copy()
             part["min_tau"] = taus[:i + 1]
             part.to_pickle(partial_file)
+            
