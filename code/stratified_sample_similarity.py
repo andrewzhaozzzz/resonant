@@ -7,6 +7,8 @@ import load_latest_valid_checkpoint
 
 def stratified_sample_similarity(dataset, save_name, model_directory, dataset_path == True,
                                  similarity_thresholds = [0.3, 0.5, 0.7, 0.8, 0.9],
+                                 batch_size = 10,
+                                 samples_per_threshold = 3,
                                  messages = True):
     
     embedding_output_dir = os.path.join(model_directory, "embedding_output")
@@ -24,13 +26,13 @@ def stratified_sample_similarity(dataset, save_name, model_directory, dataset_pa
        df = dataset
     df_subset = df.iloc[:latest_doc_count].reset_index(drop=True)
 
-    for i in range(0, n_docs, block_size):
-        i_end = min(n_docs, i + block_size)
+    for i in range(0, n_docs, batch_size):
+        i_end = min(n_docs, i + batch_size)
         emb_i = embeddings[i:i_end]
         checkpoint_results = []
 
-        for j in range(0, n_docs, block_size):
-            j_end = min(n_docs, j + block_size)
+        for j in range(0, n_docs, batch_size):
+            j_end = min(n_docs, j + batch_size)
             emb_j = embeddings[j:j_end]
 
             # compute cosine similarity (dot product since embeddings are normalized)
@@ -48,16 +50,17 @@ def stratified_sample_similarity(dataset, save_name, model_directory, dataset_pa
                 cols = torch.arange(sim_block.size(1)).repeat(sim_block.size(0))
 
             # sample from each similarity bin
-            for b in range(len(bins) - 1):
-                lo, hi = bins[b], bins[b+1]
-                in_bin = (sims >= lo) & (sims < hi)
-                cand = in_bin.nonzero(as_tuple=True)[0]
+            for b in range(len(similarity_thresholds) - 1):
+                thres = similarity_thresholds[b]
+                above_thres = (sims >= thres)
+                cand = above_thres.nonzero(as_tuple=True)[0]
                 if cand.numel() == 0:
                     continue
-                k = min(samples_per_bin, cand.numel())
+                k = min(samples_per_threshold, cand.numel())
                 choice = cand[torch.randperm(cand.numel())[:k]]
                 for idx in choice.tolist():
                     checkpoint_results.append({
+                        "threshold": thres,
                         "doc_i": i + int(rows[idx].item()),
                         "doc_j": j + int(cols[idx].item()),
                         "cosine_similarity": float(sims[idx].item())
