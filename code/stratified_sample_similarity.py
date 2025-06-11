@@ -9,6 +9,7 @@ def stratified_sample_similarity(dataset, save_name, model_directory, dataset_pa
                                  similarity_thresholds = [0.3, 0.5, 0.7, 0.8, 0.9],
                                  batch_size = 700,
                                  samples_per_threshold = 10,
+                                 variant = 0.1,
                                  messages = True):
     
     embedding_output_dir = os.path.join(model_directory, "embedding_output")
@@ -52,7 +53,7 @@ def stratified_sample_similarity(dataset, save_name, model_directory, dataset_pa
             # sample from each similarity bin
             for b in range(len(similarity_thresholds) - 1):
                 thres = similarity_thresholds[b]
-                above_thres = (sims >= thres)
+                above_thres = (sims >= thres) & (sims <= (thres + variant))
                 cand = above_thres.nonzero(as_tuple=True)[0]
                 if cand.numel() == 0:
                     continue
