@@ -11,8 +11,6 @@ def compute_resonance(
     embs_t,
     dates,
     user_codes,
-    window_days,
-    min_tau,
     taus,                            # raw tauᵢ from compute_novelty
     total_counts_per_ut,             # shape (N, n_ut): total posts in window by ut (user_type)
     resonant_counts_per_ut,          # shape (N, n_ut): resonant posts by ut
@@ -23,9 +21,11 @@ def compute_resonance(
     ut_list,                         # list of user‐type names, length = n_ut
     start_idx,
     end_idx,
-    save_every,
     prog_file,
-    partial_file
+    partial_file,
+    window_days = 14,
+    min_tau = 0.7,
+    save_every = 1000000
 ):
     """
     For each post i in [start_idx, end_idx):
@@ -73,6 +73,9 @@ def compute_resonance(
         while left < len(df) and dates[left] <= d0:
             left += 1
 
+        if left >= right:
+            continue
+
         idxs = np.arange(left, right)  # all posts strictly after i within window
         total_posts_after[i] = idxs.size
 
@@ -99,30 +102,7 @@ def compute_resonance(
                         impact_per_ut[i, u] = np.sum(sims_above[sel_ut] - tau_raw)
 
                 overall_impact[i] = impact_per_ut[i].sum()
-
-                # *************************************************************
-                ## PRINT OUT FOR DEBUGGING ##
                 
-                # if above_idxs.size >= 4:
-                #     # debug print
-                #     print(f"\nResonant post idx={i}, tau={tau_raw:.3f}, echoes={above_idxs.size}")
-                #     print(f"  Text: {df.at[i,'post_text']}\n")
-                #     for j,s in zip(above_idxs, sims_above):
-                #         print(f"    echo sim={s:.3f} text={df.at[j,'post_text']}")
-                
-                #     # top10 past
-                #     mask_bwd = (dates < d0) & (dates >= d0 - np.timedelta64(window_days, 'D'))
-                #     idxs_bwd = np.where(mask_bwd)[0]
-                #     if idxs_bwd.size:
-                #         embs_i = embs_t[i]
-                #         sims_bwd = (embs_t[idxs_bwd] @ embs_i).detach().cpu().numpy()
-                #         top10 = np.argsort(-sims_bwd)[:10]
-                #         print("\n  Top 10 past posts:")
-                #         for rank, k in enumerate(top10, 1):
-                #             j = idxs_bwd[k]
-                #             print(f"    {rank:2d}. sim={sims_bwd[k]:.3f} text={df.at[j,'post_text']}")
-                # *************************************************************
-
         # checkpoint JSON + partial .pkl
         if ((i + 1) % save_every == 0) or (i + 1 == end_idx):
             prog["resonance_idx"] = i + 1
