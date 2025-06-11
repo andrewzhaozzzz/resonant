@@ -25,7 +25,8 @@ def compute_resonance(
     partial_file,
     window_days = 14,
     min_tau = 0.7,
-    save_every = 1000000
+    save_every = 1000000,
+    group_by_users = True
 ):
     """
     For each post i in [start_idx, end_idx):
@@ -44,7 +45,8 @@ def compute_resonance(
          per‐user‐type columns 'total_posts_after_<ut>', 'resonant_posts_<ut>', 'impact_<ut>'.
     """
     prog = json.load(open(prog_file)) if os.path.exists(prog_file) else {}
-    n_ut = len(ut_list)
+    if group_by_users == True:
+        n_ut = len(ut_list)
     window_delta = np.timedelta64(window_days, 'D')
     right = start_idx
     left = start_idx
@@ -81,9 +83,9 @@ def compute_resonance(
 
         if idxs.size:
             # count total posts by user type in window
-            for u in range(n_ut):
-                total_counts_per_ut[i, u] = np.sum(user_codes[idxs] == u)
-
+            if group_by_users == True:
+                for u in range(n_ut):
+                    total_counts_per_ut[i, u] = np.sum(user_codes[idxs] == u)
             sims_fwd = (embs_t[idxs] @ embs_t[i]).cpu().numpy()
             above_mask = sims_fwd > tau_threshold
             above_idxs = idxs[above_mask]
@@ -93,13 +95,14 @@ def compute_resonance(
                 sims_above = sims_fwd[above_mask]
 
                 # group by user type
-                ut_codes = user_codes[above_idxs]  # array of length = #resonant
-                for u in range(n_ut):
-                    sel_ut = (ut_codes == u)
-                    resonant_counts_per_ut[i, u] = np.sum(sel_ut)
-                    if np.any(sel_ut):
-                        # impact contribution = sum( sim_j – tauᵢ ) over those j
-                        impact_per_ut[i, u] = np.sum(sims_above[sel_ut] - tau_raw)
+                if group_by_users == True:
+                    ut_codes = user_codes[above_idxs]  # array of length = #resonant
+                    for u in range(n_ut):
+                        sel_ut = (ut_codes == u)
+                        resonant_counts_per_ut[i, u] = np.sum(sel_ut)
+                        if np.any(sel_ut):
+                            # impact contribution = sum( sim_j – tauᵢ ) over those j
+                            impact_per_ut[i, u] = np.sum(sims_above[sel_ut] - tau_raw)
 
                 overall_impact[i] = impact_per_ut[i].sum()
                 
@@ -118,9 +121,10 @@ def compute_resonance(
             part["overall_impact"] = overall_impact[:i + 1]
 
             # attach per‐user‐type columns
-            for u, ut_name in enumerate(ut_list):
-                part[f"total_posts_after_{ut_name}"] = total_counts_per_ut[:i + 1, u]
-                part[f"resonant_posts_{ut_name}"]    = resonant_counts_per_ut[:i + 1, u]
-                part[f"impact_{ut_name}"]            = impact_per_ut[:i + 1, u]
+            if group_by_users == True:
+                for u, ut_name in enumerate(ut_list):
+                    part[f"total_posts_after_{ut_name}"] = total_counts_per_ut[:i + 1, u]
+                    part[f"resonant_posts_{ut_name}"]    = resonant_counts_per_ut[:i + 1, u]
+                    part[f"impact_{ut_name}"]            = impact_per_ut[:i + 1, u]
 
             part.to_pickle(partial_file)
