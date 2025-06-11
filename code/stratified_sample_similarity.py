@@ -7,8 +7,8 @@ import load_latest_valid_checkpoint
 
 def stratified_sample_similarity(dataset, save_name, model_directory, dataset_path == True,
                                  similarity_thresholds = [0.3, 0.5, 0.7, 0.8, 0.9],
-                                 batch_size = 10,
-                                 samples_per_threshold = 3,
+                                 batch_size = 700,
+                                 samples_per_threshold = 10,
                                  messages = True):
     
     embedding_output_dir = os.path.join(model_directory, "embedding_output")
