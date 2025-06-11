@@ -17,7 +17,7 @@ def compute_novelty(
     prog_file,
     partial_file,
     window_days = 14,
-    save_every = 10
+    save_every = 1000000
 ):
     """
     For each post i in [start_idx, end_idx), find raw tauᵢ = max cosine(emb_i, emb_j) over all
