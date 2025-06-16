@@ -28,9 +28,9 @@ def prepare_dataset(pickle_path, paragraph_col, spot_check = False, sample_num =
     if spot_check == True:
         samples = df[paragraph_col].dropna().sample(sample_num, random_state).tolist()
         for i, text in enumerate(samples, 1):
-        assert 'http' not in text,   "Found a URL in cleaned data!"
-        assert not text.lower().startswith('rt @'), "Found an RT in cleaned data!"
-        print(f"Sample {i}: {text}")
+            assert 'http' not in text,   "Found a URL in cleaned data!"
+            assert not text.lower().startswith('rt @'), "Found an RT in cleaned data!"
+            print(f"Sample {i}: {text}")
 
     # Select the paragraph column
     paragraphs = df[paragraph_col].tolist()
