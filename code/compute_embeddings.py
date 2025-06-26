@@ -38,7 +38,7 @@ def compute_embeddings(
     # Prepare dataset for embedding computation
     docs = df[paragraph_col].fillna(" ").tolist()
     total = len(docs)
-    if messages = True:
+    if messages == True:
         print(f"→ {total} documents to embed")
 
     # Load model & tokenizer
