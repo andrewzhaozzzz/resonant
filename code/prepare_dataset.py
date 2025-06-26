@@ -9,7 +9,6 @@ from transformers import (
     Trainer, 
     DataCollatorForLanguageModeling, 
     AutoTokenizer, 
-    AdamW, 
     get_scheduler
 )
 from tqdm.auto import tqdm
