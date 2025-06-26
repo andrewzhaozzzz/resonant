@@ -9,7 +9,6 @@ from transformers import (
     Trainer, 
     DataCollatorForLanguageModeling, 
     AutoTokenizer, 
-    AdamW, 
     get_scheduler
 )
 from tqdm.auto import tqdm
@@ -19,9 +18,9 @@ import torch.nn as nn
 from datasets import Dataset, DatasetDict
 import tokenize_function
 
-def finetune_model(prepared_dataset, paragraph_col, output_name, output_dir, prepared_dataset_path = False, messages = True, 
+def finetune_model(prepared_dataset, paragraph_col, output_name, output_dir, prepared_dataset_path = False, messages = True,
                    model = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2',
-                   tokenizer = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2', 
+                   tokenizer = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2',
                    num_labels = 1, mlm_prob = 0.15, evaluation_strategy="epoch", learning_rate=1e-5, num_train_epochs=1,
                    weight_decay=0.01, save_steps=100000, per_device_train_batch_size=16, gradient_accumulation_steps=4):
     # Load the dataset prepared for finetuning
@@ -40,8 +39,8 @@ def finetune_model(prepared_dataset, paragraph_col, output_name, output_dir, pre
 
     if messages == True:
         print("Model and tokenizer ready.")
-    
-    tokenized_datasets = dataset.map(tokenize_function.tokenize_function, batched = True)
+
+    tokenized_datasets = dataset.map(tokenize_function, fn_kwargs = {"tokenizer": tokenizer}, batched = True)
     tokenized_datasets = tokenized_datasets.remove_columns(["text"])
     tokenized_datasets.set_format("torch")
 
@@ -57,7 +56,7 @@ def finetune_model(prepared_dataset, paragraph_col, output_name, output_dir, pre
 
     training_args = TrainingArguments(
         output_dir = model_dir,
-        evaluation_strategy = evaluation_strategy,
+        eval_strategy = evaluation_strategy,
         learning_rate = learning_rate,
         num_train_epochs = num_train_epochs,
         weight_decay = weight_decay,
