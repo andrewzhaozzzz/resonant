@@ -14,9 +14,11 @@ def stratified_sample_similarity(dataset, save_name, model_directory, dataset_pa
     
     embedding_output_dir = os.path.join(model_directory, "embedding_output")
     # load embeddings (always on CPU)
-    embeddings, latest_doc_count, _ = load_latest_valid_checkpoint.load_latest_valid_checkpoint(
-        embedding_output_dir, save_name
-    )
+    latest_doc_count = json.load(open(os.path.join(embedding_output_dir, f"{save_name}_progress.json")))["processed"]
+    embeddings = np.memmap(os.path.join(embedding_output_dir, f"{save_name}_embeddings.npy"), dtype = "float32", mode = "r")
+
+    embeddings = torch.from_numpy(embeddings)
+    embeddings = torch.reshape(embeddings, (latest_doc_count, -1))
     embeddings = embeddings.cpu()
     n_docs = embeddings.size(0)
 
@@ -76,6 +78,6 @@ def stratified_sample_similarity(dataset, save_name, model_directory, dataset_pa
         if messages == True:
            print(f"Saved checkpoint for rows {i} to {i_end} at {out_path}")
 
-    if messages = True:
+    if messages == True:
        print("Finished processing all blocks.")
       
