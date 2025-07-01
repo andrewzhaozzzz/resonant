@@ -11,11 +11,11 @@ def compute_novelty(
     embs_t,
     dates,
     user_codes, # ?
-    taus,                # will store raw tauᵢ (np.nan if no prior posts)
     start_idx,
     end_idx,
     prog_file,
     partial_file,
+    taus = np.full(N, np.nan, dtype=np.float32),
     window_days = 14,
     save_every = 10000
 ):
