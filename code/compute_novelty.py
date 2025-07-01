@@ -15,7 +15,6 @@ def compute_novelty(
     end_idx,
     prog_file,
     partial_file,
-    taus = np.full(N, np.nan, dtype=np.float32),
     window_days = 14,
     save_every = 10000
 ):
@@ -29,6 +28,7 @@ def compute_novelty(
     window_delta = np.timedelta64(window_days, 'D')
     left = 0
     right = start_idx
+    taus = np.full(N, np.nan, dtype=np.float32)
 
     for i in tqdm(range(start_idx, end_idx), desc="novelty pass"):
         d0 = dates[i]
