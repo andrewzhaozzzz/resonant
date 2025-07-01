@@ -12,12 +12,6 @@ def compute_resonance(
     dates,
     user_codes,
     taus,                            # raw tauᵢ from compute_novelty
-    total_counts_per_ut,             # shape (N, n_ut): total posts in window by ut (user_type)
-    resonant_counts_per_ut,          # shape (N, n_ut): resonant posts by ut
-    impact_per_ut,                   # shape (N, n_ut): impact contributions by ut
-    overall_impact,                  # shape (N,): sum of impact_per_ut[i, :]
-    total_posts_after,               # shape (N,): all posts in window
-    num_resonant_posts,              # shape (N,): count of resonant posts total
     ut_list,                         # list of user‐type names, length = n_ut
     start_idx,
     end_idx,
@@ -50,6 +44,18 @@ def compute_resonance(
     window_delta = np.timedelta64(window_days, 'D')
     right = start_idx
     left = start_idx
+    # total_posts_after[i] = total # of posts in (date_i, date_i + window_days]
+    total_posts_after = np.zeros(N, dtype=int)
+    # total_counts_per_ut[i, u] = # of all posts by user type u in that window
+    total_counts_per_ut = np.zeros((N, n_ut), dtype=int)
+    # num_resonant_posts[i] = # of posts j in window where sim(j, i) > tau_threshold
+    num_resonant_posts = np.zeros(N, dtype=int)
+    # resonant_counts_per_ut[i, u] = # of resonant posts by user type u
+    resonant_counts_per_ut = np.zeros((N, n_ut), dtype=int)
+    # impact_per_ut[i, u] = sum over resonant j of (sim(j, i) – raw tauᵢ) for ut == u
+    impact_per_ut = np.zeros((N, n_ut), dtype=float)
+    # overall_impact[i] = sum_u impact_per_ut[i, u]
+    overall_impact = np.zeros(N, dtype=float)
 
     for i in tqdm(range(start_idx, end_idx), desc="resonance pass"):
         tau_raw = taus[i]
