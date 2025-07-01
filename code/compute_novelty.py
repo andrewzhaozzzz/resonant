@@ -10,7 +10,6 @@ def compute_novelty(
     df, 
     embs_t,
     dates,
-    user_codes, # ?
     start_idx,
     end_idx,
     prog_file,
