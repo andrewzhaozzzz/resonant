@@ -120,7 +120,7 @@ def create_bubbleplot(df_path, output_path,
                       messages = True,
                       **bubbleplot_options):
     
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    #os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     # --- load & compute summary ---
     df = pd.read_pickle(df_path)
@@ -204,6 +204,8 @@ def create_bubbleplot(df_path, output_path,
       print("Saved →", output_path)
 
 def add_bubbleplot_options(bubbleplot_options):
+    if "figsize" not in bubbleplot_options.keys():
+        bubbleplot_options["figsize"] = (8, 6)
     if "color" not in bubbleplot_options.keys():
         bubbleplot_options["color"] = "#002147"
     if "edgecolor" not in bubbleplot_options.keys():
@@ -225,6 +227,7 @@ def add_bubbleplot_options(bubbleplot_options):
     if "grid_zorder" not in bubbleplot_options.keys():
         bubbleplot_options["grid_zorder"] = 1
     return bubbleplot_options
+
 
 def add_training_args(training_args):
   if "learning_rate" not in training_args.keys():
