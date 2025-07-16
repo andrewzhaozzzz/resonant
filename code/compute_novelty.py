@@ -9,11 +9,11 @@ from tqdm import tqdm
 def compute_novelty(
     df, 
     embs_t,
-    dates,
     start_idx,
     end_idx,
     prog_file,
     partial_file,
+    date_col = "date",
     window_days = 14,
     save_every = 10000
 ):
@@ -23,6 +23,10 @@ def compute_novelty(
     Checkpoint every `save_every` rows by writing a partial pickled DataFrame that includes
     the 'min_tau' column (which is just the raw tau up to that point).
     """
+    date_raw = list(df[date_col])
+    date_np = [np.datetime64(i, "D") for i in date_raw]
+    dates = np.array(date_np)
+    
     prog = json.load(open(prog_file)) if os.path.exists(prog_file) else {}
     window_delta = np.timedelta64(window_days, 'D')
     left = 0
