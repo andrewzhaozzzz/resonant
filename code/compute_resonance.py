@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 def compute_resonance(
     df,
-    embs_t,
+    embedding_path,
     taus,                            # raw tauᵢ from compute_novelty
     start_idx,
     end_idx,
@@ -53,6 +53,10 @@ def compute_resonance(
     left = start_idx
 
     N = len(df)
+
+    fp = np.memmap(embedding_path, dtype = "float32", mode = "r")
+    fp = fp.reshape(N, -1)
+    embs_t = torch.from_numpy(fp)
     
     # total_posts_after[i] = total # of posts in (date_i, date_i + window_days]
     total_posts_after = np.zeros(N, dtype=int)
@@ -90,8 +94,8 @@ def compute_resonance(
             left = i + 1
         while left < len(df) and dates[left] <= d0:
             left += 1
-
-        if left >= right:
+        
+        if left >= right and i + 1 != end_idx:
             continue
 
         idxs = np.arange(left, right)  # all posts strictly after i within window
