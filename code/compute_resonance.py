@@ -9,14 +9,13 @@ from tqdm import tqdm
 def compute_resonance(
     df,
     embs_t,
-    dates,
-    user_codes,
     taus,                            # raw tauᵢ from compute_novelty
-    ut_list,                         # list of user‐type names, length = n_ut
     start_idx,
     end_idx,
     prog_file,
     partial_file,
+    date_col = "date",
+    user_col = "user_type",
     window_days = 14,
     min_tau = 0.7,
     save_every = 1000000,
@@ -38,12 +37,23 @@ def compute_resonance(
          'min_tau', 'total_posts_after', 'num_resonant_posts', 'overall_impact', and
          per‐user‐type columns 'total_posts_after_<ut>', 'resonant_posts_<ut>', 'impact_<ut>'.
     """
+    date_raw = list(df[date_col])
+    date_np = [np.datetime64(i, "D") for i in date_raw]
+    dates = np.array(date_np)
+
+    ut_list = list(df[user_col].unique())
+    ut_to_code = {ut: i for i, ut in enumerate(ut_list)}
+    user_codes = np.array([ut_to_code[u] for u in df[user_col]], dtype=int)
+    
     prog = json.load(open(prog_file)) if os.path.exists(prog_file) else {}
     if group_by_users == True:
         n_ut = len(ut_list)
     window_delta = np.timedelta64(window_days, 'D')
     right = start_idx
     left = start_idx
+
+    N = len(df)
+    
     # total_posts_after[i] = total # of posts in (date_i, date_i + window_days]
     total_posts_after = np.zeros(N, dtype=int)
     # total_counts_per_ut[i, u] = # of all posts by user type u in that window
