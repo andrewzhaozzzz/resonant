@@ -225,3 +225,19 @@ def add_bubbleplot_options(bubbleplot_options):
     if "grid_zorder" not in bubbleplot_options.keys():
         bubbleplot_options["grid_zorder"] = 1
     return bubbleplot_options
+
+def add_training_args(training_args):
+  if "learning_rate" not in training_args.keys():
+    training_args["learning_rate"] = 1e-5
+  if "num_train_epochs" not in training_args.keys():
+    training_args["num_train_epochs"] = 1
+  if "weight_decay" not in training_args.keys():
+    training_args["weight_decay"] = 0.01
+  if "save_steps" not in training_args.keys():
+    training_args["save_steps"] = 100000
+  if "per_device_train_batch_size" not in training_args.keys():
+    training_args["per_device_train_batch_size"] = 16
+  if "gradient_accumulation_steps" not in training_args.keys():
+    training_args["gradient_accumulation_steps"] = 4
+  return training_args
+
