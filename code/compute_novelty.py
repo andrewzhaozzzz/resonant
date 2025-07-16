@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 def compute_novelty(
     df, 
-    embs_t,
+    embedding_path,
     start_idx,
     end_idx,
     prog_file,
@@ -26,6 +26,12 @@ def compute_novelty(
     date_raw = list(df[date_col])
     date_np = [np.datetime64(i, "D") for i in date_raw]
     dates = np.array(date_np)
+
+    N = len(df)
+
+    fp = np.memmap(embedding_path, dtype = "float32", mode = "r")
+    fp = fp.reshape(N, -1)
+    embs_t = torch.from_numpy(fp)
     
     prog = json.load(open(prog_file)) if os.path.exists(prog_file) else {}
     window_delta = np.timedelta64(window_days, 'D')
@@ -64,4 +70,3 @@ def compute_novelty(
             part = df.iloc[:i + 1].copy()
             part["min_tau"] = taus[:i + 1]
             part.to_pickle(partial_file)
-            
