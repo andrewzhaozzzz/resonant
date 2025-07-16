@@ -5,23 +5,22 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from scipy.stats import wilcoxon
 
-def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("--input-file",  required=True,
-                   help="full NTR DataFrame pickle")
-    p.add_argument("--output-file", default="who_leads_heatmap_impact.png",
-                   help="where to save the heatmap")
-    args = p.parse_args()
+def create_heatmap(df_path, output_path, 
+                   user_col = "user_type", 
+                   prob_thresholds = [0.001, 0.01, 0.05],
+                   dpi = 300,
+                   messages = True,
+                   **heatmap_options):
 
-    df = pd.read_pickle(args.input_file)
-    authors = sorted(df["user_type"].unique())
+    df = pd.read_pickle(df_path)
+    authors = sorted(df[user_col].unique())
     audience = authors
 
-    mat = np.zeros((len(authors), len(audience)), dtype=float)
+    mat = np.zeros((len(authors), len(audience)), dtype = float)
     stars = np.full(mat.shape, "", dtype=object)
 
     for i, auth in enumerate(authors):
-        sub = df[df.user_type == auth]
+        sub = df[df[user_col] == auth]
 
         for j, aud in enumerate(audience):
             if sub.empty or f"impact_{aud}" not in sub:
@@ -48,25 +47,25 @@ def main():
             else:
                 p = 1.0
 
-            if p < 0.001:
+            if p < prob_thresholds[0]:
                 stars[i, j] = "***"
-            elif p < 0.01:
+            elif p < prob_thresholds[1]:
                 stars[i, j] = "**"
-            elif p < 0.05:
+            elif p < prob_thresholds[2]:
                 stars[i, j] = "*"
 
-    cmap = LinearSegmentedColormap.from_list("oxford_cmu",
+    cmap = LinearSegmentedColormap.from_list(heatmap_options["heatmap_name"],
                                              ["#002147", "#C8102E"])
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize = heatmap_options["figsize"])
     im = ax.imshow(mat, aspect="auto", cmap=cmap)
 
-    ax.set_ylabel("Author")
-    ax.set_xlabel("Audience")
+    ax.set_ylabel(heatmap_options["ylabel"])
+    ax.set_xlabel(heatmap_options["xlabel"])
     ax.set_yticks(range(len(authors)))
     ax.set_yticklabels([LABELS[a] for a in authors])
     ax.set_xticks(range(len(audience)))
     ax.set_xticklabels([LABELS[a] for a in audience],
-                       rotation=45, ha="right")
+                       rotation = 45, ha = "right")
 
     for y in range(mat.shape[0]):
         for x in range(mat.shape[1]):
@@ -74,11 +73,24 @@ def main():
                 txt = ""
             else:
                 txt = f"{mat[y, x]:.2f}{stars[y, x]}"
-            ax.text(x, y, txt, ha="center", va="center", color="white", fontsize=8)
+            ax.text(x, y, txt, ha = "center", va = "center", 
+                    color = "white", fontsize = 8)
 
-    cbar = fig.colorbar(im, ax=ax)
+    cbar = fig.colorbar(im, ax = ax)
     cbar.set_label("Average Impact Score")
 
     plt.tight_layout()
-    plt.savefig(args.output_file, dpi=300)
-    print(f"Heatmap saved to {args.output_file}")
+    plt.savefig(output_path, dpi = dpi)
+
+    if messages == True:
+        print(f"Heatmap saved to {output_path}")
+
+def add_heatmap_options(heatmap_options):
+    if "heatmap_name" not in heatmap_options.keys():
+        heatmap_options["heatmap_name"] = "oxford_cmu"
+    if "figsize" not in heatmap_options.keys():
+        heatmap_options["figsize"] = (8, 6)
+    if "ylabel" not in heatmap_options.keys():
+        heatmap_options["ylabel"] = "Author"
+    if "xlabel" not in heatmap_options.keys():
+        heatmap_options["xlabel"] = "Audience"
