@@ -5,6 +5,111 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from scipy.stats import wilcoxon
 
+def cosine_sims(embs, vec):
+    return embs.dot(vec)
+
+def example_posts(df_path, window_days = 14, 
+                  min_tau = 0.7, 
+                  date_col = "date",
+                  user_col = "user_type",
+                  text_col = "post_text",
+                  user_filter_type = ["all"], 
+                  top_n = 10, 
+                  prior_neighbors = 3,
+                  echo_neighbors = 5):
+
+    # --- load and sort
+    df = pd.read_pickle(df_path)
+    df[date_col] = pd.to_datetime(df[date_col])
+    df = df.sort_values(date_col).reset_index(drop=True)
+
+    '''
+    # --- ensure required columns exist
+    expected = {"embedding", "min_tau", "overall_impact", "date", "post_text", "user_type"}
+    missing = expected - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing columns in final file: {missing}")
+    '''
+
+    if user_filter_type == ["all"]:
+      user_filter_type = list(pd.unique(df[user_col]))
+
+    for i in user_filter_type:
+      # --- filter by user_type, pick top-N by overall_impact
+      hits = df[df[user_col] == i]
+      if hits.empty:
+          print(f"No posts by user_type='{i}'")
+          return
+      else:
+          print(f"Filtering by user_type='{i}'\n")
+
+      top_hits = hits.nlargest(top_n, "overall_impact")
+      embs_all = np.stack(df["embedding"].values)
+
+      # --- for each top hit
+      for rank, (idx, post) in enumerate(top_hits.iterrows(), 1):
+          raw_tau = post.min_tau
+          tau_threshold = max(raw_tau, min_tau)
+          d0 = post[date_col]
+          td = pd.Timedelta(days=window_days)
+
+          print(f"=== #{rank} Impact={post.overall_impact:.3f} "
+                f"(global idx={idx}) ===")
+          print(f"Date: {d0.date()}  User: {post[user_col]}  raw τ={raw_tau:.3f}  "
+                f"threshold={tau_threshold:.3f}")
+          print("Text:")
+          print(post.post_text, "\n")
+
+          # --- top prior neighbors (no threshold)
+          nov_mask = (df[date_col] <  d0) & (df[date_col] >= d0 - td)
+          idxs_nov = np.where(nov_mask)[0]
+          if idxs_nov.size:
+              sims = cosine_sims(embs_all[idxs_nov], embs_all[idx])
+              topm = np.argsort(-sims)[: prior_nbrs]
+              print(f"Top {prior_nbrs} prior neighbors:")
+              for i in topm:
+                  gi = idxs_nov[i]
+                  sim_val = sims[i]
+                  date_i = df.at[gi, date_col].date()
+                  text_i = df.at[gi, text_col]
+                  print(f" • idx={gi} date={date_i} sim={sim_val:.3f}")
+                  print(f"   {text_i}\n")
+          else:
+              print("No prior posts in window.\n")
+
+          # --- all future candidates within window
+          res_mask = (df[date_col] >  d0) & (df[date_col] <= d0 + td)
+          idxs_res = np.where(res_mask)[0]
+          if idxs_res.size:
+              sims_fwd = cosine_sims(embs_all[idxs_res], embs_all[idx])
+              keep = sims_fwd > tau_threshold
+              idxs_e = idxs_res[keep]
+              sims_e = sims_fwd[keep]
+
+              resonant_count = idxs_e.size
+              impact_sum = np.sum(sims_e - raw_tau) if resonant_count > 0 else 0.0
+              print(f"Resonant count={resonant_count}  recalculated impact={impact_sum:.3f}")
+
+              if idxs_e.size:
+                  # sort by (sim - raw_tau) descending
+                  deltas = sims_e - raw_tau
+                  order = np.argsort(-deltas)[: echo_nbrs]
+                  print(f"Top {echo_nbrs} resonant echoes:")
+                  for i in order:
+                      gi = idxs_e[i]
+                      sim_val = sims_e[i]
+                      delta = sim_val - raw_tau
+                      date_i = df.at[gi, date_col].date()
+                      text_i = df.at[gi, text_col]
+                      print(f" • idx={gi} date={date_i} sim={sim_val:.3f} Δ={delta:.3f}")
+                      print(f"   {text_i}\n")
+              else:
+                  print("No resonant echoes in window.\n")
+          else:
+              print("No future posts in window.\n")
+
+          print("-" * 60 + "\n")
+
 def create_heatmap(df_path, output_path, 
                    user_col = "user_type", 
                    prob_thresholds = [0.001, 0.01, 0.05],
