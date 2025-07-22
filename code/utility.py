@@ -3,7 +3,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-from scipy.stats import wilcoxon
+from itertools import combinations
+from statsmodels.stats.proportion import proportions_ztest
+from scipy.stats import kruskal, mannwhitneyu, wilcoxon
 
 def cosine_sims(embs, vec):
     return embs.dot(vec)
@@ -109,6 +111,90 @@ def example_posts(df_path, window_days = 14,
               print("No future posts in window.\n")
 
           print("-" * 60 + "\n")
+
+from itertools import combinations
+from statsmodels.stats.proportion import proportions_ztest
+from scipy.stats import kruskal, mannwhitneyu
+
+def summary_stats(df_path, output_path, date_col = "date",
+                  user_col = "user_type",
+                  res_threshold = 1,
+                  proportion_test = True,
+                  kruskal_wallis = True,
+                  mann_whitney_u = True,
+                  messages = True):
+    
+    df = pd.read_pickle(df_path)
+    df[date_col] = pd.to_datetime(df[date_col])
+    df = df.sort_values(date_col).reset_index(drop=True)
+
+    total_rows = len(df)
+    if messages == True:
+        print(f"Loaded full DataFrame: {total_rows} rows")
+        print(f"Date range: {df[date_col].iloc[0]} → {df[date_col].iloc[-1]}")
+
+    # Define posts meeting the resonance threshold
+    df['has_resonance'] = df['num_resonant_posts'] >= res_threshold
+
+    # Group by user_type
+    grp = df.groupby(user_col)
+
+    summary = pd.DataFrame({
+        'Num Posts': grp.size(),
+        '% Posts Resonant': grp['has_resonance'].mean()
+    })
+
+    # Filter to posts that meet the resonance threshold
+    resonant_only = df[df['has_resonance']]
+    g2 = resonant_only.groupby(user_col)
+
+    summary['Median Impact'] = g2['overall_impact'].median()
+    summary['90th% Impact'] = g2['overall_impact'].quantile(0.9)
+
+    # Round values and write to CSV
+    summary = summary.round(3)
+    out_fn = os.path.basename(df_path).replace('.pkl', '_group_summary.csv')
+    out_csv = os.path.join(output_path, out_fn)
+    summary.to_csv(out_csv)
+
+    if messages == True:
+        print(f"Summary written to {out_csv}\n")
+        print(summary) #?
+
+    # ─── Statistical significance tests ───
+
+    # 1) Proportion tests for % Posts Resonant (z-test)
+    if proportion_test == True:
+        print("\n–– Proportion tests for % Posts Resonant (z-test) ––")
+        for u1, u2 in combinations(summary.index, 2):
+            c1 = int(df.loc[df[user_col] == u1, 'has_resonance'].sum())
+            n1 = int(summary.loc[u1, 'Num Posts'])
+            c2 = int(df.loc[df[user_col] == u2, 'has_resonance'].sum())
+            n2 = int(summary.loc[u2, 'Num Posts'])
+            z, p = proportions_ztest([c1, c2], [n1, n2])
+            print(f"{u1} vs {u2}: z={z:.3f}, p={p:.3f}")
+
+    # 2) Kruskal–Wallis test on overall impact among resonant posts
+    if kruskal_wallis == True:
+        print("\n–– Kruskal–Wallis on Impact ––")
+        impact_samples = [
+            resonant_only.loc[resonant_only[user_col] == u, 'overall_impact'].dropna().values
+            for u in summary.index
+        ]
+        H, p_kw = kruskal(*impact_samples)
+        print(f"H={H:.3f}, p={p_kw:.3f}")
+
+    # 3) Pairwise Mann–Whitney U tests on overall impact among resonant posts
+    if mann_whitney_u == True:
+        print("\n–– Pairwise Mann–Whitney U for Impact ––")
+        for u1, u2 in combinations(summary.index, 2):
+            x1 = resonant_only.loc[resonant_only[user_col] == u1, 'overall_impact'].dropna().values
+            x2 = resonant_only.loc[resonant_only[user_col] == u2, 'overall_impact'].dropna().values
+            if len(x1) and len(x2):
+                U, p_mw = mannwhitneyu(x1, x2, alternative='two-sided')
+                print(f"{u1} vs {u2}: U={U:.1f}, p={p_mw:.3f}")
+           else:
+                print(f"{u1} vs {u2}: insufficient data for Mann–Whitney U test")
 
 def create_heatmap(df_path, output_path, 
                    user_col = "user_type", 
