@@ -61,7 +61,7 @@ def example_posts(df_path, embedding_path, window_days = 14,
           print(f"Date: {d0.date()}  User: {post[user_col]}  raw τ={raw_tau:.3f}  "
                 f"threshold={tau_threshold:.3f}")
           print("Text:")
-          print(post.post_text, "\n")
+          print(post[text_col], "\n")
 
           # --- top prior neighbors (no threshold)
           nov_mask = (df[date_col] <  d0) & (df[date_col] >= d0 - td)
@@ -251,9 +251,9 @@ def create_heatmap(df_path, output_path,
     ax.set_ylabel(heatmap_options["ylabel"])
     ax.set_xlabel(heatmap_options["xlabel"])
     ax.set_yticks(range(len(authors)))
-    ax.set_yticklabels([LABELS[a] for a in authors])
+    ax.set_yticklabels([a for a in authors])
     ax.set_xticks(range(len(audience)))
-    ax.set_xticklabels([LABELS[a] for a in audience],
+    ax.set_xticklabels([a for a in audience],
                        rotation = heatmap_options["rotation"], 
                        ha = heatmap_options["xlabel_ha"])
 
@@ -376,7 +376,7 @@ def create_bubbleplot(df_path, output_path,
             va = "top"
 
         ax.annotate(
-            LABELS.get(ut, ut),
+            (ut, ut),
             xy         = (x, y),
             xytext     = (dx, dy),
             textcoords = "offset points",
