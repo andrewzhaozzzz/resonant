@@ -9,7 +9,7 @@ from scipy.stats import kruskal, mannwhitneyu, wilcoxon
 def cosine_sims(embs, vec):
     return embs.dot(vec)
 
-def example_posts(df_path, window_days = 14, 
+def example_posts(df_path, embedding_path, window_days = 14, 
                   min_tau = 0.7, 
                   date_col = "date",
                   user_col = "user_type",
