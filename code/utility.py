@@ -16,8 +16,8 @@ def example_posts(df_path, window_days = 14,
                   text_col = "post_text",
                   user_filter_type = ["all"], 
                   top_n = 10, 
-                  prior_neighbors = 3,
-                  echo_neighbors = 5):
+                  prior_nbrs = 3,
+                  echo_nbrs = 5):
 
     # --- load and sort
     df = pd.read_pickle(df_path)
