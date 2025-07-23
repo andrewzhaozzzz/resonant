@@ -112,9 +112,6 @@ def example_posts(df_path, window_days = 14,
 
           print("-" * 60 + "\n")
 
-from itertools import combinations
-from statsmodels.stats.proportion import proportions_ztest
-from scipy.stats import kruskal, mannwhitneyu
 
 def summary_stats(df_path, output_path, date_col = "date",
                   user_col = "user_type",
