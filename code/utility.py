@@ -191,7 +191,7 @@ def summary_stats(df_path, output_path, date_col = "date",
             if len(x1) and len(x2):
                 U, p_mw = mannwhitneyu(x1, x2, alternative='two-sided')
                 print(f"{u1} vs {u2}: U={U:.1f}, p={p_mw:.3f}")
-           else:
+            else:
                 print(f"{u1} vs {u2}: insufficient data for Mann–Whitney U test")
 
 def create_heatmap(df_path, output_path, 
