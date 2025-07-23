@@ -45,7 +45,9 @@ def example_posts(df_path, embedding_path, window_days = 14,
           print(f"Filtering by user_type='{i}'\n")
 
       top_hits = hits.nlargest(top_n, "overall_impact")
-      embs_all = np.stack(df["embedding"].values)
+      fp = np.memmap(embedding_path, dtype = "float32", mode = "r")
+      fp = fp.reshape(len(df), -1)
+      embs_all = fp
 
       # --- for each top hit
       for rank, (idx, post) in enumerate(top_hits.iterrows(), 1):
