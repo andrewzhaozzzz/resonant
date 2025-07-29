@@ -28,7 +28,7 @@ def prepare_dataset(pickle_path, paragraph_col, spot_check = False, sample_num =
     paragraph_col : string
         The name of the column corresponding to text or paragraphs we aim to analyze.
         
-    spot_check: bool, optional
+    spot_check : bool, optional
         If set to True, then check the existence of URLs or RTs in text column.
     
     sample_num : int, optional
