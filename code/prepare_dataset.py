@@ -46,7 +46,7 @@ def prepare_dataset(pickle_path, paragraph_col, spot_check = False, sample_num =
     Return
     -------
     dataset : DatasetDict
-        A dataset containing training set and test set, prepared for LLM fine-tuning.
+        A dataset containing training set and test set, based on the original dataset and prepared for LLM fine-tuning.
     """
     # Confirm you’re loading the right file
     df = pd.read_pickle(pickle_path)
