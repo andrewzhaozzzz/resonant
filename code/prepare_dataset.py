@@ -18,6 +18,36 @@ import torch.nn as nn
 from datasets import Dataset, DatasetDict
 
 def prepare_dataset(pickle_path, paragraph_col, spot_check = False, sample_num = 5, random_state = 0, num_paras = None, messages = True):
+    """Preparation of a given dataset for subsequent LLM fine-tuning.
+
+    Parameters
+    ----------
+    pickle_path : string
+        The path of the pickle file that contains the dataset for preparation.
+
+    paragraph_col : string
+        The name of the column corresponding to text or paragraphs we aim to analyze.
+        
+    spot_check: bool, optional
+        If set to True, then check the existence of URLs or RTs in text column.
+    
+    sample_num : int, optional
+        Only needed if spot_check is set to True. The number of samples to perform spot check on.
+
+    random_state : int, optional
+        Only needed if spot_check is set to True. The random state to randomly select samples during spot check.
+
+    num_paras : int, optional
+        If specified, the dataset would be sliced to include only the specified number of rows.
+
+    messages : bool, optional
+        If set to False, then messages that indicate running progress would not be printed out.
+
+    Return
+    -------
+    dataset : DatasetDict
+        A dataset containing training set and test set, prepared for LLM fine-tuning.
+    """
     # Confirm you’re loading the right file
     df = pd.read_pickle(pickle_path)
     if messages == True:
