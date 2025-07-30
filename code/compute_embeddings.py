@@ -15,7 +15,6 @@ def compute_embeddings(
     model_dir,
     tokenizer_dir,
     save_name,
-    batch_num,
     data_pickle_path = True,
     pooling_method = "mean_pooling",
     batch_size = 32,
@@ -26,31 +25,38 @@ def compute_embeddings(
 
     Parameters
     ----------
-    pickle_path : string
-        The path of the pickle file that contains the dataset for preparation.
+    dataset : string, DataFrame
+        If data_pickle_path is True, then it should be a string indicating the path of the pickle file containing the original dataset.
+        If data_pickle_path is False, then it should be the original dataset in DataFrame form.
 
     paragraph_col : string
         The name of the column corresponding to text or paragraphs we aim to analyze.
+
+    model_dir : string
+        The path directory where the model is saved.
+
+    tokenizer_dir : string
+        The path directory where the tokenizer is saved. If used finetune_model, then should be the same as model_dir.
+
+    save_name : string
+        A self-selected name for the file that saves the calculated embeddings.
         
-    spot_check : bool, optional
-        If set to True, then check the existence of URLs or RTs in text column.
+    data_pickle_path : bool, optional
+        If set to True, then the dataset parameter should be a specified pickle file path for reading in the original dataset.
+        If False, then the dataset parameter should be the original dataset.
     
-    sample_num : int, optional
-        Only needed if spot_check is set to True. The number of samples to perform spot check on.
+    pooling_method : string, optional
+        The pooling method to calculate the embedding for a document from the word embeddings inside the document.
 
-    random_state : int, optional
-        Only needed if spot_check is set to True. The random state to randomly select samples during spot check.
-
-    num_paras : int, optional
-        If specified, the dataset would be sliced to include only the specified number of rows.
-
+    batch_size : int, optional
+        The document batch size when calculating the embeddings from the specified Large Language Model.
+        
+    max_length : int, optional
+        The maximum length of the returned tokenized sequence for each document.
+        
     messages : bool, optional
         If set to False, then messages that indicate running progress would not be printed out.
-
-    Return
-    -------
-    dataset : DatasetDict
-        A dataset containing training set and test set, based on the original dataset and prepared for LLM fine-tuning.
+    
     """
     # Load dataset
     if data_pickle_path = True:
