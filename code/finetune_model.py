@@ -21,8 +21,7 @@ import resonant.prepare_dataset
 def finetune_model(prepared_dataset, paragraph_col, output_name, output_dir, prepared_dataset_path = False, messages = True,
                    model = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2',
                    tokenizer = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2',
-                   num_labels = 1, mlm_prob = 0.15, evaluation_strategy="epoch", learning_rate=1e-5, num_train_epochs=1,
-                   weight_decay=0.01, save_steps=100000, per_device_train_batch_size=16, gradient_accumulation_steps=4):
+                   num_labels = 1, mlm_prob = 0.15, **training_args):
     """Fine-tuning of a specified LLM that would be used to generate embeddings for text.
 
     Parameters
@@ -38,27 +37,26 @@ def finetune_model(prepared_dataset, paragraph_col, output_name, output_dir, pre
         A self-selected name for the output model and tokenizer.
 
     output_dir: string
-        The self-selected path directory for saving the output model and tokenizer.
+        A self-selected path directory for saving the output model and tokenizer.
         
     prepared_dataset_path : bool, optional
         If set to True, then prepared_dataset would read in a pickle file containing the original dataset without preparation.
-    
-    sample_num : int, optional
-        Only needed if spot_check is set to True. The number of samples to perform spot check on.
-
-    random_state : int, optional
-        Only needed if spot_check is set to True. The random state to randomly select samples during spot check.
-
-    num_paras : int, optional
-        If specified, the dataset would be sliced to include only the specified number of rows.
 
     messages : bool, optional
         If set to False, then messages that indicate running progress would not be printed out.
 
-    Return
-    -------
-    dataset : DatasetDict
-        A dataset containing training set and test set, based on the original dataset and prepared for LLM fine-tuning.
+    model : string, optional
+        The Large Language Model used for fine-tuning. Should be one of the Hugging Face AutoModels.
+
+    tokenizer : string, optional
+        The tokenizer used for embedding generation. Should be one of the Hugging Face AutoTokenizers.
+
+    num_labels : int, optional
+
+    mlm_prob : scalar, optional
+
+    training_args : dict
+
     """
     # Load the dataset prepared for finetuning
     if prepared_dataset_path == True:
@@ -96,14 +94,7 @@ def finetune_model(prepared_dataset, paragraph_col, output_name, output_dir, pre
         print("Starting training...")
 
     training_args = TrainingArguments(
-        output_dir = model_dir,
-        eval_strategy = evaluation_strategy,
-        learning_rate = learning_rate,
-        num_train_epochs = num_train_epochs,
-        weight_decay = weight_decay,
-        save_steps = save_steps,
-        per_device_train_batch_size = per_device_train_batch_size,  # smaller batch size
-        gradient_accumulation_steps = gradient_accumulation_steps,     # accumulate gradients over multiple steps
+            **training_args
     )
 
     trainer = Trainer(
