@@ -11,7 +11,41 @@ def stratified_sample_similarity(dataset, save_name, model_directory, dataset_pa
                                  samples_per_threshold = 10,
                                  variant = 0.1,
                                  messages = True):
+    """Calculate the cosine similarity of the documents, and print out examples based on self-selected similarity thresholds.
+       Used to determine what similarity threshold would be reasonable for the dataset, and set the threshold accordingly when calculating novelty and resonance.
     
+    Parameters
+    ----------
+    dataset : string, DataFrame
+        If dataset_path is True, then it should be a string indicating the path of the pickle file containing the original dataset.
+        If dataset_path is False, then it should be the original dataset in DataFrame form.
+
+    save_name : string
+        The self-selected name for the file that saves the calculated embeddings. The same save_name selected in compute_embeddings.
+
+    model_directory : string
+        The path directory where the model is saved.
+
+    dataset_path : bool, optional
+        If set to True, then the dataset parameter should be a specified pickle file path for reading in the original dataset.
+        If False, then the dataset parameter should be the original dataset.
+
+    similarity_thresholds : list, array_like, optional
+        Self-selected similarity thresholds to print out examples on. For each threshold, the examples printed out would have similarity between threshold and threshold + variant.
+
+    batch_size : int, optional
+        The document batch size used when calculating cosine similarity between documents.
+
+    sample_per_threshold : int, optional
+        For each self-selected threshold, the number of examples to be printed out.
+
+    variant : scalar, optional
+        For each self-selected threshold, consider documents with cosine similarity between threshold and threshold + variant to be within the threshold.
+
+    messages : bool, optional
+        If set to False, then messages that indicate running progress would not be printed out.
+
+    """
     embedding_output_dir = os.path.join(model_directory, "embedding_output")
     # load embeddings (always on CPU)
     latest_doc_count = json.load(open(os.path.join(embedding_output_dir, f"{save_name}_progress.json")))["processed"]
