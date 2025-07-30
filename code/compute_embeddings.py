@@ -5,7 +5,6 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 import gc
-import argparse
 from transformers import AutoTokenizer, AutoModel, logging
 from torch.cuda.amp import autocast
 import mean_pooling
