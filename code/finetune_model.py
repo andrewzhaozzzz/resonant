@@ -52,10 +52,10 @@ def finetune_model(prepared_dataset, paragraph_col, output_name, output_dir, pre
         The tokenizer used for embedding generation. Should be one of the Hugging Face AutoTokenizers.
 
     num_labels : int, optional
-
+        Number of labels to use in the last layer added to the model (typically for a classification task).
+        
     mlm_prob : scalar, optional
-
-    training_args : dict
+        The probability with which to (randomly) mask tokens in the input.
 
     """
     # Load the dataset prepared for finetuning
