@@ -22,6 +22,38 @@ def compute_novelty(
     j in the prior window.  If there are no prior posts, tauᵢ = np.nan.  Store raw tauᵢ in taus[i].
     Checkpoint every `save_every` rows by writing a partial pickled DataFrame that includes
     the 'min_tau' column (which is just the raw tau up to that point).
+
+    Parameters
+    ----------
+    df : string, DataFrame
+        If dataset_path is True, then it should be a string indicating the path of the pickle file containing the original dataset.
+        If dataset_path is False, then it should be the original dataset in DataFrame form.
+
+    embedding_path : string
+        The path directory of the memmap npy file containing calculated embeddings.
+
+    start_idx : int
+        The row index of the first document in dataset to consider in novelty calculation. Note that the first post might have np.nan min tau, but could affect following posts.
+
+    end_idx : int
+        The row index of the last document in dataset to consider in novelty calculation.
+
+    prog_file : string
+        A self-selected path directory for saving and reading progress file. Used to record the progress of novelty calculation, and resume from the latest progress.
+
+    partial_file : string
+        A self-selected path directory for saving min tau results. The file would be the original dataset plus an additional column with min tau information.
+
+    date_col : string, optional
+        The name of the dataset column that contains date information.
+
+    window_days : int, optional
+        The number of days to consider in the prior window. Documents with an earlier date than the date of current document - window_days would not be considered in novelty calculation.
+
+    save_every : int, optional
+        If specified, save the min tau information to the partial file when every save_every row has been processed.
+
+    
     """
     date_raw = list(df[date_col])
     date_np = [np.datetime64(i, "D") for i in date_raw]
