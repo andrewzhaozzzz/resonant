@@ -52,7 +52,6 @@ def compute_novelty(
 
     save_every : int, optional
         If specified, save the min tau information to the partial file when every save_every row has been processed.
-
     
     """
     date_raw = list(df[date_col])
