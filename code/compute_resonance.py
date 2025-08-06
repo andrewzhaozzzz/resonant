@@ -36,6 +36,50 @@ def compute_resonance(
       6. Every `save_every`, checkpoint a partial DataFrame with columns:
          'min_tau', 'total_posts_after', 'num_resonant_posts', 'overall_impact', and
          per‐user‐type columns 'total_posts_after_<ut>', 'resonant_posts_<ut>', 'impact_<ut>'.
+
+    Parameters
+    ----------
+    df : string, DataFrame
+        If dataset_path is True, then it should be a string indicating the path of the pickle file containing the original dataset.
+        If dataset_path is False, then it should be the original dataset in DataFrame form.
+
+    embedding_path : string
+        The path directory of the memmap npy file containing calculated embeddings.
+
+    taus : array_like
+        The min tau calculated by compute_novelty. Should be the min tau column in the compute_novelty output DataFrame.
+
+    start_idx : int
+        The row index of the first document in dataset to consider in novelty calculation. Note that the first post might have np.nan min tau, but could affect following posts.
+
+    end_idx : int
+        The row index of the last document in dataset to consider in novelty calculation.
+
+    prog_file : string
+        A self-selected path directory for saving and reading progress file. Used to record the progress of resonance calculation, and resume from the latest progress.
+
+    partial_file : string
+        A self-selected path directory for saving min tau results. The file would be the original dataset plus additional columns with impact information.
+
+    date_col : string, optional
+        The name of the dataset column that contains date information.
+
+    user_col : string, optional
+        The name of the dataset column that contains user group types information.
+
+    window_days : int, optional
+        The number of days to consider in the prior window. Documents with an earlier date than the date of current document - window_days would not be considered in novelty calculation.
+
+    min_tau : scalar, optional
+        For each document, if its calculated min tau is lower than the specified min_tau, use the specified min_tau instead when calculating resonance.
+
+    save_every : int, optional
+        If specified, save the min tau information to the partial file when every save_every row has been processed.
+
+    group_by_users : bool, optional
+        If True, resonance and impact would be calculated within user groups.
+        If False, resonance and impact would be calculated among all user groups.
+    
     """
     date_raw = list(df[date_col])
     date_np = [np.datetime64(i, "D") for i in date_raw]
