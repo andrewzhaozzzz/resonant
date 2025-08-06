@@ -45,6 +45,16 @@ def stratified_sample_similarity(dataset, save_name, model_directory, dataset_pa
     messages : bool, optional
         If set to False, then messages that indicate running progress would not be printed out.
 
+    Output
+    --------
+    csv files split on batch size, containing specified thresholds, the document pairs that satisfy the given threshold, and the actual cosine similarity of every document pair.
+    The csv files would contain multiple rows across various thresholds, but for each threshold, the maximum number of samples is given by sample_per_threshold.
+
+    Example Output
+    --------
+    threshold  doc_i  doc_i_text                                                  doc_j  doc_j_text       cosine_similarity
+    0.3        8      Ve por la sombra...  que por el sol te derrites, BOMBON !!  314    you okay Liz?:(  0.330648
+
     """
     embedding_output_dir = os.path.join(model_directory, "embedding_output")
     # load embeddings (always on CPU)
