@@ -20,7 +20,7 @@ def example_posts(df_path, embedding_path,
                   prior_nbrs = 3,
                   echo_nbrs = 5):
     """
-    For every user group type in user_filter_type, give out examples of 
+    For every user group type in user_filter_type, give out top resonant documents within the user group.
     
     Parameters
     ----------
@@ -160,6 +160,10 @@ def summary_stats(df_path, output_path, date_col = "date",
                   kruskal_wallis = True,
                   mann_whitney_u = True,
                   messages = True):
+    """
+    Summary statistics of impact and resonance within each user group.
+    Could do optional Proportion test, Kruskal Wallis test and Mann Whitney U test. 
+    """
     
     df = pd.read_pickle(df_path)
     df[date_col] = pd.to_datetime(df[date_col])
@@ -239,6 +243,9 @@ def create_heatmap(df_path, output_path,
                    dpi = 300,
                    messages = True,
                    **heatmap_options):
+    """
+    Generate heatmap that shows the statistical significance of average impact score among user groups.
+    """
 
     df = pd.read_pickle(df_path)
     authors = sorted(df[user_col].unique())
@@ -317,6 +324,9 @@ def create_heatmap(df_path, output_path,
         print(f"Heatmap saved to {output_path}")
 
 def add_heatmap_options(heatmap_options):
+    """
+    Completes the 'heatmap_options' dictionary for use in creating the heatmap.
+    """
     if "heatmap_name" not in heatmap_options.keys():
         heatmap_options["heatmap_name"] = "oxford_cmu"
     if "heatmap_color" not in heatmap_options.keys():
@@ -347,8 +357,9 @@ def create_bubbleplot(df_path, output_path,
                       dpi = 300,
                       messages = True,
                       **bubbleplot_options):
-    
-    #os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    """
+    Generates bubble plot that shows, within each user group, the median impact among documents and the percentage of resonant documents.
+    """
 
     # --- load & compute summary ---
     df = pd.read_pickle(df_path)
@@ -432,6 +443,9 @@ def create_bubbleplot(df_path, output_path,
       print("Saved →", output_path)
 
 def add_bubbleplot_options(bubbleplot_options):
+    """
+    Completes the 'bubbleplot_options' dictionary for use in creating the bubble plot.
+    """
     if "figsize" not in bubbleplot_options.keys():
         bubbleplot_options["figsize"] = (8, 6)
     if "color" not in bubbleplot_options.keys():
@@ -458,6 +472,9 @@ def add_bubbleplot_options(bubbleplot_options):
 
 
 def add_training_args(training_args):
+    """
+    Completes the 'training_options' dictionary for use in finetuning the LLM.
+    """
   if "learning_rate" not in training_args.keys():
     training_args["learning_rate"] = 1e-5
   if "num_train_epochs" not in training_args.keys():
