@@ -59,6 +59,8 @@ def compute_novelty(
         If specified, save the min tau information to the partial file when every save_every row has been processed.
     
     """
+    if dataset_path == True:
+        df = pd.read_pickle(df)
     date_raw = list(df[date_col])
     date_np = [np.datetime64(i, "D") for i in date_raw]
     dates = np.array(date_np)
