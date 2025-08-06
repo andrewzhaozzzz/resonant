@@ -13,6 +13,7 @@ def compute_novelty(
     end_idx,
     prog_file,
     partial_file,
+    dataset_path = False,
     date_col = "date",
     window_days = 14,
     save_every = 10000
@@ -43,6 +44,10 @@ def compute_novelty(
 
     partial_file : string
         A self-selected path directory for saving min tau results. The file would be the original dataset plus an additional column with min tau information.
+
+    dataset_path : string, optional
+        If True, df should be a string indicating the path of the pickle file containing the original dataset.
+        If False, df should be the original dataset in DataFrame form.
 
     date_col : string, optional
         The name of the dataset column that contains date information.
