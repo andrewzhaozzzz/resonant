@@ -9,7 +9,8 @@ from scipy.stats import kruskal, mannwhitneyu, wilcoxon
 def cosine_sims(embs, vec):
     return embs.dot(vec)
 
-def example_posts(df_path, embedding_path, window_days = 14, 
+def example_posts(df_path, embedding_path,
+                  window_days = 14, 
                   min_tau = 0.7, 
                   date_col = "date",
                   user_col = "user_type",
@@ -18,6 +19,44 @@ def example_posts(df_path, embedding_path, window_days = 14,
                   top_n = 10, 
                   prior_nbrs = 3,
                   echo_nbrs = 5):
+    """
+    For every user group type in user_filter_type, give out examples of 
+    
+    Parameters
+    ----------
+    df_path : string
+        The path directory of the DataFrame containing resonance and impact information. Should be the path directory of the output of compute_resonance.
+
+    embedding_path : string
+        The path directory of the memmap npy file containing calculated embeddings.
+
+    taus : array_like
+        The min tau calculated by compute_novelty. Should be the min tau column in the compute_novelty output DataFrame.
+
+    start_idx : int
+        The row index of the first document in dataset to consider in novelty calculation. Note that the first post might have np.nan min tau, but could affect following posts.
+
+    end_idx : int
+        The row index of the last document in dataset to consider in novelty calculation.
+
+    prog_file : string
+        A self-selected path directory for saving and reading progress file. Used to record the progress of resonance calculation, and resume from the latest progress.
+
+    partial_file : string
+        A self-selected path directory for saving min tau results. The file would be the original dataset plus additional columns with impact information.
+
+    date_col : string, optional
+        The name of the dataset column that contains date information.
+
+    user_col : string, optional
+        The name of the dataset column that contains user group types information.
+
+    window_days : int, optional
+        The number of days to consider in the prior window. Documents with an earlier date than the date of current document - window_days would not be considered in novelty calculation.
+
+    min_tau : scalar, optional
+        For each document, if its calculated min tau is lower than the specified min_tau, use the specified min_tau instead when calculating resonance.
+    """
 
     # --- load and sort
     df = pd.read_pickle(df_path)
