@@ -14,6 +14,7 @@ def compute_resonance(
     end_idx,
     prog_file,
     partial_file,
+    dataset_path = False, 
     date_col = "date",
     user_col = "user_type",
     window_days = 14,
@@ -81,6 +82,8 @@ def compute_resonance(
         If False, resonance and impact would be calculated among all user groups.
     
     """
+    if dataset_path == True:
+        df = pd.read_pickle(df)
     date_raw = list(df[date_col])
     date_np = [np.datetime64(i, "D") for i in date_raw]
     dates = np.array(date_np)
