@@ -360,6 +360,7 @@ def create_bubbleplot(df_path, output_path,
                       **bubbleplot_options):
     """
     Generates bubble plot that shows, within each user group, the median impact among documents and the percentage of resonant documents.
+    The size of the bubble indicates the total number of documents within the user group.
     """
 
     # --- load & compute summary ---
