@@ -245,6 +245,7 @@ def create_heatmap(df_path, output_path,
                    **heatmap_options):
     """
     Generate heatmap that shows the statistical significance of average impact score among user groups.
+    Specifically, for every user group, we want to know how the documents within the user group impacts other user groups.
     """
 
     df = pd.read_pickle(df_path)
